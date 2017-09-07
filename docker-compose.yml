@@ -1,0 +1,45 @@
+version: '3'
+services:
+  db:
+    image: mdillon/postgis
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DATABASE: citygram_development
+    restart: always
+  redis:
+    image: redis:latest
+    command: redis-server
+    ports:
+      - "6378:6378"
+  citygram:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://postgres@db/citygram_development
+      - REDIS_URL=redis://redis:6379
+      - APPLICATION_URL=http://citygram:9292
+      - BASIC_AUTH_USERNAME=username
+      - BASIC_AUTH_PASSWORD=password
+      - UNICORN_WORKERS=1
+      - TWILIO_URL=https://api.twilio.com/2010-04-01
+      - TWILIO_FROM_NUMBER=15555555555
+      - TWILIO_ACCOUNT_SID=dev-account-sid
+      - TWILIO_AUTH_TOKEN=dev-auth-token
+      - SMTP_ADDRESS=smtp.example.com
+      - SMTP_PORT=123
+      - SMTP_USER_NAME=dev-smtp-user-name
+      - SMTP_PASSWORD=dev-smtp-password
+      - SMTP_DOMAIN=mydomain.com
+      - SMTP_FROM_ADDRESS=citygram@example.com
+      - DEV_EMAIL_RECIPIENT=thedeveloper@example.com
+      - DIGEST_DAY=Sun
+    volumes:
+      - .:/citygram
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
