@@ -1,4 +1,6 @@
 require 'open-uri'
+require 'openssl'
+
 namespace :publishers do
   desc "Prompt publishers to update themselves"
   task update: :app do
@@ -8,6 +10,7 @@ namespace :publishers do
   end
   desc "Download publishers from Citygram"
   task download: :app do
+    OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
     pub_file = open("https://www.citygram.org/publishers.json").read
     publishers = JSON.parse(pub_file)
     Citygram::Models::Publisher.set_allowed_columns(
