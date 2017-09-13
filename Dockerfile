@@ -23,7 +23,5 @@ WORKDIR $APP_HOME
 RUN bundle install
 
 # Start server
-ENV PORT 5000
+ENV PORT 9292
 EXPOSE $PORT
-
-ENTRYPOINT ["bin/entry"]
