@@ -12,15 +12,18 @@ services:
     restart: always
   redis:
     image: redis:latest
-    command: redis-server
+    volumes:
+      - .:/citygram
     ports:
-      - "6378:6378"
+      - "6379:6379"  
+    restart: always
   citygram:
     build: .
     environment:
       - DATABASE_URL=postgres://postgres@db/citygram_development
       - REDIS_URL=redis://redis:6379
-      - APPLICATION_URL=http://citygram:9292
+      - REDIS_HOSTNAME=redis
+      - APPLICATION_URL=http://localhost:9292
       - BASIC_AUTH_USERNAME=username
       - BASIC_AUTH_PASSWORD=password
       - UNICORN_WORKERS=1
@@ -39,7 +42,8 @@ services:
     volumes:
       - .:/citygram
     ports:
-      - "5000:5000"
+      - "9292:9292"
     depends_on:
       - db
       - redis
+    command: bundle exec unicorn -c ./config/unicorn.rb  
