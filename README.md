@@ -34,68 +34,17 @@ Citygram is a web application written in Ruby.
 
 ### Installation
 
-#### Option 1:
-For an OSX setup, you can use [vagrant](http://vagrantup.com) to get up and running quickly with [virtual box](http://virtualbox.org) and [homebrew](http:/brew.sh). This option will provide you with a smooth straight forward way of quickly getting you up and running.
-
-```bash
-# setup homebrew
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-
-# setup virtualbox
-brew cask install virtualbox
-
-# starts up an ubuntu box and installs postgres and all other dependencies
-vagrant up
-
-# login to the box and start the program:
-vagrant ssh
-cd /vagrant
-bundle exec foreman start
-```
-
-#### Option 2:
-First, follow the instructions to install each of the following:
-
-* [Install Ruby](https://github.com/codeforamerica/howto/blob/master/Ruby.md)
-* [Install PostgreSQL and PostGIS](https://github.com/codeforamerica/howto/blob/master/PostgreSQL.md)
-* Install Redis - `brew install redis` on OS X, available from your package manager on Linux or [direct download](http://redis.io/download)
-
-Then, in the command line, run the following to copy the citygram code locally and install all Ruby package dependencies:
 
 ```
 git clone https://github.com/codeforamerica/citygram.git
 cd citygram
-bundle install
+bin/clean-env
+docker-compose exec citygram bundle exec sidekiq -c 5 -r ./app.rb
 ```
 
-#### Configure Environment
+You can then open [http://localhost:9292/](http://localhost:9292/) in your web browser.
 
-Make sure your PostgreSQL server is running, then in the terminal run:
-
-```
-cp .env.sample .env
-rake db:create db:migrate
-rake db:create db:migrate DATABASE_URL=postgres://localhost/citygram_test
-```
-
-### Running Citygram Website and Services
-
-Basic things you'll want to do with your Citygram server:
-
-##### Run the server
-
-To boot up the complete application and run background jobs in development:
-```
-bundle exec foreman start
-```
-
-You can then open [http://localhost:5000/](http://localhost:5000/) in your web browser.
-
-#### Acquiring data
-
-When you can run the application, you're capable of getting some example data.
-
-*Before running these commands, ensure foreman is running per the instructions in the previous section!*
+Data will be preloaded as part of the `bin/clean-env` script. Here are the commands that preload the data:
 
 ```
 bundle exec rake publishers:download
@@ -108,7 +57,7 @@ The first command downloads active publishers from Citygram. The second command 
 ##### Send a digest
 
 ```
-rake digests:send
+docker-compose exec citygram rake digests:send
 ```
 
 ##### Send a a weekly Digest
@@ -118,7 +67,7 @@ but will only deliver mail on the environment's `DIGEST_DAY`.
 
 ```
 ENV['DIGEST_DAY'] = 'wednesday'
-rake digests:send_if_digest_day
+docker-compose exec citygram rake digests:send_if_digest_day
 ```
 
 [![Heroku Scheduler](https://cloud.githubusercontent.com/assets/81055/8840908/732942c2-30b5-11e5-8af7-06b9e169d281.png)](https://devcenter.heroku.com/articles/scheduler)
@@ -142,5 +91,5 @@ ROOT_CITY_TAG=new-york
 
 Run all tests in the `spec/` directory, by running:
 ```
-rake
+docker-compose exec citygram rake
 ```
