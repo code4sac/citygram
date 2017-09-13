@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -ex
+
+docker-compose down --remove-orphans
+rm -rf data
+docker-compose build
+docker-compose up -d db redis
+until docker-compose exec db psql -U postgres -c 'create database citygram_development;'; do
+  echo "Waiting for postgres server"
+  sleep 5
+done
+docker-compose up -d citygram
+docker-compose exec citygram bundle exec rake db:create
+docker-compose exec citygram bundle exec rake db:migrate
+docker-compose exec citygram bundle exec rake publishers:download
+docker-compose exec citygram bundle exec rake publishers:update
